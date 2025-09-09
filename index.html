@@ -1,408 +1,600 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratório de Conservação de Energia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutral Harmony -->
-    <!-- Application Structure Plan: A single-page, vertically scrolling application divided into three thematic sections. 1) 'Conceitos Fundamentais' introduces the types of energy. 2) 'Laboratório Interativo' provides hands-on simulations (projectile and pendulum) with real-time charts and user-controlled variables (mass, velocity, friction) to visualize energy transformation in conservative and dissipative systems. 3) 'Resolva os Desafios' turns the PDF exercises into interactive calculators. This structure was chosen to guide the user from theoretical knowledge to practical, interactive application, enhancing understanding and engagement more effectively than a linear report. -->
-    <!-- Visualization & Content Choices: Report Info -> Projectile motion & energy transformation. Goal -> Allow users to see energy change dynamically. Viz -> HTML/CSS animation paired with a Chart.js bar chart. Interaction -> Sliders for mass and velocity update the simulation. Justification -> Visualizing the inverse relationship between kinetic and potential energy is more intuitive than reading about it. Report Info -> Pendulum with friction. Goal -> Demonstrate energy loss in dissipative systems. Viz -> Pendulum animation and a Chart.js chart showing mechanical energy decreasing while dissipated energy increases. Interaction -> Friction slider. Justification -> Clearly illustrates the difference between conservative and dissipative systems. Report Info -> End-of-chapter exercises. Goal -> Reinforce formula application. Viz -> Interactive calculator 'cards'. Interaction -> User inputs values, clicks 'calculate' to see the result. Justification -> Active problem-solving is better for learning than passive reading. All charts use Chart.js on Canvas. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F5F5F5;
-            color: #2c3e50;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 250px;
-            max-height: 300px;
-        }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 300px;
-                max-height: 350px;
-            }
-        }
-        .slider-thumb::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #3498db;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-        .slider-thumb::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #3498db;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratório de Conservação de Energia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #1f2937; color: #e2e8f0; }
+    .chart-container { position: relative; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; height: 280px; }
+    .slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #06b6d4; cursor: pointer; border-radius: 50%; }
+    .slider-thumb::-moz-range-thumb { width: 20px; height: 20px; background: #06b6d4; cursor: pointer; border-radius: 50%; }
+    #projectile1D { position: absolute; bottom: 0; left: 50%; width: 0.8rem; height: 0.8rem; background-color: #38bdf8; border-radius: 9999px; transform: translateX(-50%); }
+    #proj2Container { position: relative; }
+    #projectile2D { position: absolute; left: 0; bottom: 0; width: 0.8rem; height: 0.8rem; background-color: #22d3ee; border-radius: 9999px; pointer-events: none; }
+    #trajCanvas { position: absolute; inset: 0; }
+    #pendulum-arm-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: flex-start; padding-top: 5rem; }
+    #pendulum-arm { width: 2px; height: 10rem; background-color: #6b7280; border-radius: 9999px; transform-origin: top center; }
+    #pendulum-bob { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 2.4rem; height: 2.4rem; background-color: #fca5a5; border-radius: 9999px; }
+  </style>
 </head>
 <body class="antialiased">
+  <header class="bg-[#374151] shadow-lg py-6">
+    <div class="container mx-auto px-4 md:px-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#e2e8f0]">Laboratório de Conservação de Energia</h1>
+      <p class="mt-2 text-base md:text-lg text-gray-300">Inspirado na lei de Lavoisier: "Nada se perde, tudo se transforma."</p>
+    </div>
+  </header>
 
-    <header class="bg-white shadow-md py-6">
-        <div class="container mx-auto px-6 text-center">
-            <h1 class="text-4xl font-bold text-[#2c3e50]">Laboratório de Conservação de Energia</h1>
-            <p class="mt-2 text-lg text-gray-600">Inspirado na lei de Lavoisier: "Nada se perde, tudo se transforma."</p>
+  <main class="container mx-auto px-4 md:px-6 py-8 md:py-12">
+    <!-- Conceitos Fundamentais -->
+    <section id="conceitos" class="mb-12 md:mb-16">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Conceitos Fundamentais</h2>
+      <p class="text-center text-gray-300 mb-6 md:mb-8 max-w-3xl mx-auto">A <strong>Lei de Conservação de Energia</strong> é um dos princípios mais importantes da física. Ela nos diz que a energia total de um sistema isolado permanece constante ao longo do tempo. Em outras palavras, a energia não pode ser criada nem destruída, apenas transformada de uma forma para outra. É essa transformação que veremos acontecer em nosso laboratório, passando de energia potencial para cinética e vice-versa.</p>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+          <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#38bdf8]">⚡ Energia Cinética</h3>
+          <p class="text-gray-300">A energia associada ao <strong>movimento</strong>. Quanto maior a massa ou a velocidade de um corpo, maior sua energia cinética. Ela é máxima quando o objeto está em sua velocidade mais alta e zero quando está parado.</p>
+          <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_c = ½ mv²</p>
         </div>
-    </header>
-
-    <main class="container mx-auto px-6 py-12">
-        
-        <section id="conceitos" class="mb-16">
-            <h2 class="text-3xl font-bold text-center mb-8">Conceitos Fundamentais</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-3 text-[#2c3e50]">⚡ Energia Cinética</h3>
-                    <p class="text-gray-700">A energia associada ao **movimento**. Quanto maior a massa ou a velocidade de um corpo, maior sua energia cinética.</p>
-                    <p class="mt-4 text-center font-mono bg-gray-100 p-2 rounded-md">E_c = ½ mv²</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-3 text-[#2c3e50]">⛰️ Energia Potencial</h3>
-                    <p class="text-gray-700">A energia armazenada devido à **posição** ou altura de um corpo. Quanto mais alto, maior sua capacidade de realizar trabalho.</p>
-                    <p class="mt-4 text-center font-mono bg-gray-100 p-2 rounded-md">E_p = mgh</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg md:col-span-2 lg:col-span-1">
-                    <h3 class="text-2xl font-bold mb-3 text-[#2c3e50]">⚙️ Energia Mecânica</h3>
-                    <p class="text-gray-700">É a **soma** da energia cinética e da energia potencial. Em sistemas ideais, essa energia total se conserva.</p>
-                    <p class="mt-4 text-center font-mono bg-gray-100 p-2 rounded-md">E_m = E_c + E_p</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="laboratorio" class="mb-16 bg-white p-8 rounded-xl shadow-2xl">
-            <h2 class="text-3xl font-bold text-center mb-2">Laboratório Interativo</h2>
-            <p class="text-center text-gray-600 mb-8">Veja a transformação de energia acontecer. Ajuste os controles e observe o resultado em tempo real.</p>
-            
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h3 class="text-2xl font-bold mb-4 text-center">Simulação 1: O Projétil (Sistema Conservativo)</h3>
-                    <div class="relative w-full h-80 bg-gray-100 rounded-lg overflow-hidden border">
-                        <div id="projectile" class="absolute bottom-0 left-1/2 w-8 h-8 bg-[#3498db] rounded-full -ml-4"></div>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="projMass" class="block text-sm font-medium text-gray-700">Massa (kg)</label>
-                            <input type="range" id="projMass" min="0.01" max="2" step="0.01" value="0.5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
-                            <span id="projMassValue" class="text-center block font-mono">0.5 kg</span>
-                        </div>
-                        <div>
-                            <label for="projVel" class="block text-sm font-medium text-gray-700">Velocidade Inicial (m/s)</label>
-                            <input type="range" id="projVel" min="10" max="100" step="1" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
-                            <span id="projVelValue" class="text-center block font-mono">50 m/s</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="chart-container">
-                        <canvas id="projectileChart"></canvas>
-                    </div>
-                     <div class="text-center mt-4 p-4 bg-gray-50 rounded-lg">
-                        <p><strong>Energia Mecânica Total:</strong> <span id="projTotalEnergy" class="font-mono">0</span> J</p>
-                        <p><strong>Altura Máxima Atingida:</strong> <span id="projMaxHeight" class="font-mono">0</span> m</p>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="my-12">
-
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                     <h3 class="text-2xl font-bold mb-4 text-center">Simulação 2: O Pêndulo (Sistema Dissipativo)</h3>
-                    <div class="relative w-full h-80 bg-gray-100 rounded-lg overflow-hidden border">
-                         <div id="pendulum-pivot" class="absolute top-0 left-1/2 w-2 h-2 bg-black -ml-1"></div>
-                         <div id="pendulum-arm" class="absolute top-0 left-1/2 w-0.5 h-40 bg-gray-700" style="transform-origin: top center;"></div>
-                         <div id="pendulum-bob" class="absolute w-10 h-10 bg-[#e74c3c] rounded-full"></div>
-                    </div>
-                     <div class="mt-4">
-                        <label for="pendulumFriction" class="block text-sm font-medium text-gray-700">Atrito</label>
-                        <input type="range" id="pendulumFriction" min="0" max="0.05" step="0.001" value="0.005" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
-                        <span id="pendulumFrictionValue" class="text-center block font-mono">Baixo</span>
-                    </div>
-                </div>
-                <div>
-                    <div class="chart-container">
-                        <canvas id="pendulumChart"></canvas>
-                    </div>
-                    <div class="text-center mt-4 p-4 bg-gray-50 rounded-lg">
-                        <p><strong>Energia Mecânica Restante:</strong> <span id="pendulumCurrentEnergy" class="font-mono">0</span> J</p>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-        
-        <section id="desafios">
-            <h2 class="text-3xl font-bold text-center mb-8">Resolva os Desafios</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold mb-3">🎢 Desafio 1: Barco Viking</h3>
-                    <p class="mb-4 text-gray-600">Considerando o atrito desprezível, qual a velocidade do barco ao passar pelo ponto mais baixo, partindo de uma altura de 20m?</p>
-                    <button id="calcVik" class="w-full bg-[#3498db] text-white py-2 rounded-lg hover:bg-[#2980b9] transition-colors">Calcular Velocidade</button>
-                    <p id="resVik" class="mt-4 text-center font-bold text-lg h-8"></p>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold mb-3">🧱 Desafio 2: O Pedreiro</h3>
-                    <p class="mb-4 text-gray-600">Qual a menor velocidade para lançar um tijolo a 3m de altura, para que ele chegue com velocidade zero?</p>
-                    <button id="calcPed" class="w-full bg-[#3498db] text-white py-2 rounded-lg hover:bg-[#2980b9] transition-colors">Calcular Velocidade Mínima</button>
-                    <p id="resPed" class="mt-4 text-center font-bold text-lg h-8"></p>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold mb-3">💪 Desafio 3: O Lutador</h3>
-                    <p class="mb-4 text-gray-600">Um lutador de 100kg se joga nas cordas a 5 m/s. Qual a energia potencial elástica armazenada na corda quando ele para?</p>
-                    <button id="calcLut" class="w-full bg-[#3498db] text-white py-2 rounded-lg hover:bg-[#2980b9] transition-colors">Calcular Energia Armazenada</button>
-                    <p id="resLut" class="mt-4 text-center font-bold text-lg h-8"></p>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold mb-3">👧 Desafio 4: O Escorregador</h3>
-                    <p class="mb-4 text-gray-600">Uma criança de 50kg desce de um escorregador de 2m de altura. Se 600 Joules são perdidos pelo atrito, qual sua velocidade final?</p>
-                    <button id="calcEsc" class="w-full bg-[#3498db] text-white py-2 rounded-lg hover:bg-[#2980b9] transition-colors">Calcular Velocidade Final</button>
-                    <p id="resEsc" class="mt-4 text-center font-bold text-lg h-8"></p>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    <footer class="bg-white mt-16 py-6 border-t">
-        <div class="container mx-auto px-6 text-center text-gray-500">
-            <p>Compreender a conservação e a dissipação de energia é fundamental para um mundo mais eficiente.</p>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+          <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#4ade80]">⛰️ Energia Potencial</h3>
+          <p class="text-gray-300">A energia armazenada devido à <strong>posição</strong> ou altura de um corpo. Quanto mais alto, maior sua capacidade de realizar trabalho. Ela é máxima na altura máxima e zero na altura de referência.</p>
+          <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_p = mgh</p>
         </div>
-    </footer>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105 md:col-span-2 lg:col-span-1">
+          <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#fca5a5]">⚙️ Energia Mecânica</h3>
+          <p class="text-gray-300">É a <strong>soma</strong> da energia cinética e da energia potencial. Em sistemas ideais, onde não há atrito ou outras perdas, essa energia total se conserva e permanece constante durante todo o movimento.</p>
+          <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_m = E_c + E_p</p>
+        </div>
+      </div>
+    </section>
 
-    <script>
-        const g = 9.81;
+    <!-- Laboratório Interativo -->
+    <section id="laboratorio" class="mb-12 md:mb-16 bg-[#374151] p-4 md:p-8 rounded-xl shadow-2xl">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Laboratório Interativo</h2>
+      <p class="text-center text-gray-300 mb-6 md:mb-8 max-w-3xl mx-auto">Veja a transformação de energia acontecer. Esta seção permite que você interaja com dois sistemas: um conservativo (projétil ideal) e um dissipativo (pêndulo com atrito). Também incluímos uma versão 2D do projétil com ângulo e gravidade variável para comparar diferentes planetas.</p>
 
-        const setupProjectile = () => {
-            const massSlider = document.getElementById('projMass');
-            const velSlider = document.getElementById('projVel');
-            const massValue = document.getElementById('projMassValue');
-            const velValue = document.getElementById('projVelValue');
-            const projectileEl = document.getElementById('projectile');
-            const totalEnergyEl = document.getElementById('projTotalEnergy');
-            const maxHeightEl = document.getElementById('projMaxHeight');
-            const canvas = document.getElementById('projectileChart');
-            const ctx = canvas.getContext('2d');
+      <!-- Gravidade global -->
+      <div class="bg-[#2f3b4c] rounded-lg p-4 mb-8">
+        <div class="grid md:grid-cols-3 gap-4 items-center">
+          <div class="md:col-span-2">
+            <label for="gSlider" class="block text-sm font-medium text-gray-200">Gravidade (aplica às simulações de projétil)</label>
+            <input type="range" id="gSlider" min="1" max="25" step="0.1" value="9.81" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Gravidade"/>
+            <span id="gValue" class="text-sm">9.81 m/s²</span>
+          </div>
+          <div class="flex flex-wrap gap-2 justify-center md:justify-end">
+            <button class="planet-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm" data-g="9.81" aria-label="Gravidade Terra">🌍 Terra</button>
+            <button class="planet-btn bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm" data-g="1.62" aria-label="Gravidade Lua">🌙 Lua</button>
+            <button class="planet-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm" data-g="3.71" aria-label="Gravidade Marte">🔴 Marte</button>
+            <button class="planet-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm" data-g="24.79" aria-label="Gravidade Júpiter">🟡 Júpiter</button>
+          </div>
+        </div>
+      </div>
 
-            let chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Energia'],
-                    datasets: [
-                        { label: 'Cinética', data: [0], backgroundColor: '#3498db', borderWidth: 1 },
-                        { label: 'Potencial', data: [0], backgroundColor: '#27ae60', borderWidth: 1 }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true, title: { display: true, text: 'Joules (J)' } },
-                        y: { stacked: true, display: false }
-                    },
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { enabled: false }
-                    }
-                }
-            });
+      <!-- Projétil 1D -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div>
+          <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Simulação 1: O Projétil (Sistema Conservativo, 1D)</h3>
+          <p class="text-gray-300 mb-4">Nesta simulação, estamos em um <strong>sistema ideal</strong>, onde a resistência do ar é desprezada. O projétil parte com alta velocidade vertical. Ao subir, sua energia cinética converte-se em potencial gravitacional; no topo, <em>v</em>=0 e a energia potencial é máxima. Ao descer, o processo se inverte. A <strong>soma total</strong> permanece constante.</p>
+          <div class="relative w-full h-64 md:h-80 bg-[#1f2937] rounded-lg overflow-hidden border border-[#525252]">
+            <div id="projectile1D"></div>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <label for="projMass" class="block text-sm font-medium text-gray-300">Massa (kg)</label>
+              <input type="range" id="projMass" min="0.01" max="2" step="0.01" value="0.5" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Massa do projétil">
+              <span id="projMassValue" class="text-center block font-mono text-sm md:text-base">0.50 kg</span>
+            </div>
+            <div>
+              <label for="projVel" class="block text-sm font-medium text-gray-300">Velocidade Inicial (m/s)</label>
+              <input type="range" id="projVel" min="10" max="100" step="1" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Velocidade inicial do projétil">
+              <span id="projVelValue" class="text-center block font-mono text-sm md:text-base">50 m/s</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="chart-container">
+            <canvas id="projectileChart1D"></canvas>
+          </div>
+          <div class="text-center mt-4 p-4 bg-[#2f3b4c] rounded-lg">
+            <p class="text-sm md:text-base"><strong>Energia Mecânica Total:</strong> <span id="projTotalEnergy" class="font-mono text-[#4ade80]">0</span> J</p>
+            <p class="text-sm md:text-base"><strong>Altura Máxima Atingida:</strong> <span id="projMaxHeight" class="font-mono text-[#4ade80]">0</span> m</p>
+          </div>
+          <p class="text-gray-300 mt-4 text-sm md:text-base">No gráfico, a soma das barras de energia cinética e potencial se mantém constante, evidenciando a conservação de energia sob a ação exclusiva da gravidade.</p>
+        </div>
+      </div>
 
-            let animationFrameId;
-            let state = { mass: 0.5, v0: 50, t: 0, y: 0, v: 50, totalEnergy: 0, maxHeight: 0 };
+      <hr class="my-8 md:my-12 border-gray-600"/>
 
-            function updateValues() {
-                state.mass = parseFloat(massSlider.value);
-                state.v0 = parseFloat(velSlider.value);
-                massValue.textContent = `${state.mass.toFixed(2)} kg`;
-                velValue.textContent = `${state.v0.toFixed(0)} m/s`;
-                resetAnimation();
-            }
+      <!-- Projétil 2D -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div>
+          <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Simulação 1B: Projétil 2D (com ângulo e trajetória)</h3>
+          <p class="text-gray-300 mb-4">Agora o projétil descreve uma <strong>trajetória parabólica</strong>: o movimento horizontal é uniforme enquanto o vertical é acelerado pela gravidade. Ajuste os controles e observe alcance, altura máxima e a evolução das energias em tempo real.</p>
+          <div id="proj2Container" class="relative w-full h-64 md:h-80 bg-[#0f172a] rounded-lg overflow-hidden border border-[#525252]">
+            <canvas id="trajCanvas"></canvas>
+            <div id="projectile2D"></div>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-4">
+            <div>
+              <label for="proj2Mass" class="block text-sm font-medium text-gray-300">Massa (kg)</label>
+              <input type="range" id="proj2Mass" min="0.1" max="5" step="0.1" value="1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Massa do projétil 2D">
+              <span id="proj2MassValue" class="text-center block font-mono text-sm md:text-base">1.0 kg</span>
+            </div>
+            <div>
+              <label for="proj2Vel" class="block text-sm font-medium text-gray-300">Velocidade (m/s)</label>
+              <input type="range" id="proj2Vel" min="5" max="120" step="1" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Velocidade inicial do projétil 2D">
+              <span id="proj2VelValue" class="text-center block font-mono text-sm md:text-base">50 m/s</span>
+            </div>
+            <div>
+              <label for="proj2Angle" class="block text-sm font-medium text-gray-300">Ângulo (°)</label>
+              <input type="range" id="proj2Angle" min="5" max="85" step="1" value="45" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Ângulo de lançamento do projétil 2D">
+              <span id="proj2AngleValue" class="text-center block font-mono text-sm md:text-base">45°</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="chart-container">
+            <canvas id="projectileChart2D"></canvas>
+          </div>
+          <div class="grid grid-cols-3 gap-3 text-center mt-4">
+            <div class="p-3 bg-[#2f3b4c] rounded">
+              <p class="text-xs text-gray-300">Energ. Total</p>
+              <p class="font-mono" id="proj2TotalEnergy">0</p>
+            </div>
+            <div class="p-3 bg-[#2f3b4c] rounded">
+              <p class="text-xs text-gray-300">Altura Máx (m)</p>
+              <p class="font-mono" id="proj2MaxHeight">0</p>
+            </div>
+            <div class="p-3 bg-[#2f3b4c] rounded">
+              <p class="text-xs text-gray-300">Alcance (m)</p>
+              <p class="font-mono" id="proj2Range">0</p>
+            </div>
+          </div>
+          <div class="mt-4 p-4 bg-[#2f3b4c] rounded-lg">
+            <h4 class="font-bold mb-2">Explicação Teórica</h4>
+            <p class="text-gray-300 text-sm md:text-base mb-2">🔹 <strong>Trajetória parabólica</strong>: combinação de MRU no eixo x (v_x constante) e MUV no eixo y (a_y = -g). As equações x(t)=v₀cosθ·t e y(t)=v₀senθ·t−(1/2)gt² geram a parábola.</p>
+            <p class="text-gray-300 text-sm md:text-base mb-2">🔹 <strong>Altura máxima</strong>: H = (v₀²·sen²θ)/(2g). 🔹 <strong>Alcance</strong>: R = (v₀²·sen2θ)/g (sem ar e mesmo nível).</p>
+            <p class="text-gray-300 text-sm md:text-base">🔹 <strong>Gravidade variável</strong>: reduzir g (ex.: Lua) aumenta o tempo de voo, a altura e o alcance; aumentar g (ex.: Júpiter) reduz todos eles.</p>
+          </div>
+        </div>
+      </div>
 
-            function resetAnimation() {
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                state.t = 0;
-                state.totalEnergy = 0.5 * state.mass * state.v0 * state.v0;
-                state.maxHeight = (state.v0 * state.v0) / (2 * g);
-                totalEnergyEl.textContent = state.totalEnergy.toFixed(2);
-                maxHeightEl.textContent = state.maxHeight.toFixed(2);
-                animate();
-            }
+      <hr class="my-8 md:my-12 border-gray-600"/>
 
-            function animate() {
-                state.t += 0.016;
-                state.y = state.v0 * state.t - 0.5 * g * state.t * state.t;
-                state.v = state.v0 - g * state.t;
+      <!-- Pêndulo -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div>
+          <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Simulação 2: O Pêndulo (Sistema Dissipativo)</h3>
+          <p class="text-gray-300 mb-4">Na realidade, a maioria dos sistemas não é ideal. Este pêndulo é um <strong>sistema dissipativo</strong>, em que forças como o atrito e a resistência do ar retiram energia mecânica do sistema. A energia "perdida" transforma-se em calor e som. Ajuste o atrito e observe a energia total diminuir.</p>
+          <div class="relative w-full h-64 md:h-80 bg-[#1f2937] rounded-lg overflow-hidden border border-[#525252]">
+            <div class="absolute top-0 left-1/2 w-2 h-2 bg-[#e2e8f0] -translate-x-1/2 rounded-full z-10"></div>
+            <div id="pendulum-arm-container">
+              <div id="pendulum-arm">
+                <div id="pendulum-bob"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-col gap-4">
+            <div>
+              <label for="pendulumFriction" class="block text-sm font-medium text-gray-300">Atrito</label>
+              <input type="range" id="pendulumFriction" min="0" max="0.2" step="0.001" value="0.005" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Atrito do pêndulo">
+              <span id="pendulumFrictionValue" class="text-center block font-mono text-sm md:text-base">Baixo</span>
+            </div>
+            <button id="resetPendulum" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Reiniciar Pêndulo">Reiniciar Pêndulo</button>
+          </div>
+        </div>
+        <div>
+          <div class="chart-container">
+            <canvas id="pendulumChart"></canvas>
+          </div>
+          <div class="text-center mt-4 p-4 bg-[#2f3b4c] rounded-lg">
+            <p class="text-sm md:text-base"><strong>Energia Mecânica Restante:</strong> <span id="pendulumCurrentEnergy" class="font-mono text-[#fca5a5]">0</span> J</p>
+          </div>
+          <p class="text-gray-300 mt-4 text-sm md:text-base">Ao aumentar o atrito, a energia mecânica restante (cinética + potencial) diminui mais rapidamente. A barra de energia <strong>dissipada</strong> mostra a quantidade convertida em calor e som, explicando por que a maioria dos sistemas reais eventualmente para.</p>
+        </div>
+      </div>
+    </section>
 
-                if (state.y < 0) {
-                    state.t = 0;
-                }
+    <!-- Desafios -->
+    <section id="desafios">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Resolva os Desafios</h2>
+      <p class="text-center text-gray-300 mb-6 md:mb-8 max-w-3xl mx-auto">Agora é sua vez de aplicar o que aprendeu. Os exercícios foram transformados em calculadoras interativas para você testar as fórmulas de energia.</p>
 
-                const containerHeight = projectileEl.parentElement.clientHeight;
-                const projHeight = projectileEl.clientHeight;
-                const pixelY = (state.y / state.maxHeight) * (containerHeight - projHeight);
-                projectileEl.style.bottom = `${Math.max(0, pixelY)}px`;
+      <div class="grid md:grid-cols-2 gap-6 md:gap-8">
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h3 class="text-lg md:text-xl font-bold mb-3">🎢 Desafio 1: Barco Viking</h3>
+          <p class="mb-4 text-gray-300 text-sm md:text-base">Considerando o atrito desprezível, qual a velocidade do barco ao passar pelo ponto mais baixo, partindo de uma altura de 20m?</p>
+          <button id="calcVik" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular velocidade do barco Viking">Calcular Velocidade</button>
+          <p id="resVik" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">Conservação de energia: mgh = ½mv² ⇒ v = √(2gh).</p>
+        </div>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h3 class="text-lg md:text-xl font-bold mb-3">🧱 Desafio 2: O Pedreiro</h3>
+          <p class="mb-4 text-gray-300 text-sm md:text-base">Qual a menor velocidade para lançar um tijolo a 3m de altura, para que ele chegue com velocidade zero?</p>
+          <button id="calcPed" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular velocidade mínima do tijolo">Calcular Velocidade Mínima</button>
+          <p id="resPed" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">No topo, E_c=0 ⇒ ½mv² = mgh ⇒ v = √(2gh).</p>
+        </div>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h3 class="text-lg md:text-xl font-bold mb-3">💪 Desafio 3: O Lutador</h3>
+          <p class="mb-4 text-gray-300 text-sm md:text-base">Um lutador de 100kg se joga nas cordas a 5 m/s. Qual a energia potencial elástica armazenada na corda quando ele para?</p>
+          <button id="calcLut" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular energia elástica">Calcular Energia Armazenada</button>
+          <p id="resLut" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">Toda E_c vira E_elástica: ½mv².</p>
+        </div>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h3 class="text-lg md:text-xl font-bold mb-3">👧 Desafio 4: O Escorregador</h3>
+          <p class="mb-4 text-gray-300 text-sm md:text-base">Uma criança de 50kg desce de um escorregador de 2m de altura. Se 600 Joules são perdidos pelo atrito, qual sua velocidade final?</p>
+          <button id="calcEsc" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular velocidade final da criança">Calcular Velocidade Final</button>
+          <p id="resEsc" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">E_c(final) = mgh − W_atrito.</p>
+        </div>
+      </div>
 
-                const e_c = 0.5 * state.mass * state.v * state.v;
-                const e_p = state.totalEnergy - e_c;
+      <hr class="my-8 md:my-12 border-gray-600" />
 
-                chart.data.datasets[0].data[0] = e_c;
-                chart.data.datasets[1].data[0] = e_p;
-                chart.options.scales.x.max = state.totalEnergy * 1.1;
-                chart.update('none');
+      <!-- Desafios Planetários -->
+      <h3 class="text-xl md:text-2xl font-bold text-center mb-4">🌌 Desafios Planetários</h3>
+      <p class="text-center text-gray-300 mb-6 max-w-3xl mx-auto">Explore como a gravidade afeta o movimento dos projéteis em diferentes planetas.</p>
+      <div class="grid md:grid-cols-2 gap-6 md:gap-8">
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h4 class="text-lg md:text-xl font-bold mb-3">🌍 vs 🌙 Alcance Comparado</h4>
+          <p class="mb-2 text-gray-300 text-sm md:text-base">Lançamento a 50 m/s, θ = 45° (mesmo nível).</p>
+          <button id="calcTerraLua" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular alcance Terra vs Lua">Calcular</button>
+          <p id="resTerraLua" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">Fórmula: R = (v₀²·sen2θ)/g. Menor g ⇒ maior alcance.</p>
+        </div>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg">
+          <h4 class="text-lg md:text-xl font-bold mb-3">🔴 vs 🟡 Altura Máxima</h4>
+          <p class="mb-2 text-gray-300 text-sm md:text-base">Lançamento a 30 m/s, θ = 60°.</p>
+          <button id="calcMarteJupiter" class="w-full bg-[#06b6d4] text-white py-2 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular altura Marte vs Júpiter">Calcular</button>
+          <p id="resMarteJupiter" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">Altura máxima: H = (v₀²·sen²θ)/(2g).</p>
+        </div>
+        <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg md:col-span-2">
+          <h4 class="text-lg md:text-xl font-bold mb-3">⚖️ Gravidade Customizada</h4>
+          <p class="mb-2 text-gray-300 text-sm md:text-base">Para v₀ = 40 m/s e θ = 30°, informe g e calcule alcance e altura máxima.</p>
+          <div class="flex gap-4 mb-4">
+            <input type="number" id="customG" value="9.81" step="0.01" class="w-full p-2 rounded text-black" placeholder="g (m/s²)" aria-label="Gravidade customizada">
+            <button id="calcCustomG" class="bg-[#06b6d4] text-white px-4 rounded-lg hover:bg-[#0891b2] transition-colors" aria-label="Calcular alcance e altura customizados">Calcular</button>
+          </div>
+          <p id="resCustomG" class="mt-4 text-center font-bold text-sm md:text-base h-8"></p>
+          <p class="mt-2 text-gray-400 text-xs">Dica: teste g da Lua (1,62) e de Marte (3,71) e compare com a Terra.</p>
+        </div>
+      </div>
+    </section>
+  </main>
 
-                animationFrameId = requestAnimationFrame(animate);
-            }
+<footer class="bg-[#374151] mt-12 md:mt-16 py-6 border-t border-gray-600">
+  <div class="container mx-auto px-6 text-center text-gray-300">
+    <p class="text-sm md:text-base">Compreender a conservação e a dissipação de energia é fundamental para um mundo mais eficiente.</p>
+    <p class="text-xs mt-2 text-gray-400">created by Ana Beatriz Gramacho and IA's</p>
+  </div>
+</footer>
 
-            massSlider.addEventListener('input', updateValues);
-            velSlider.addEventListener('input', updateValues);
-            updateValues();
-        };
-        
-        const setupPendulum = () => {
-            const frictionSlider = document.getElementById('pendulumFriction');
-            const frictionValue = document.getElementById('pendulumFrictionValue');
-            const arm = document.getElementById('pendulum-arm');
-            const bob = document.getElementById('pendulum-bob');
-            const currentEnergyEl = document.getElementById('pendulumCurrentEnergy');
-            
-            const canvas = document.getElementById('pendulumChart');
-            const ctx = canvas.getContext('2d');
-            
-            const armLength = arm.clientHeight;
-            const bobSize = bob.clientWidth;
-            
-            let chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Energia'],
-                    datasets: [
-                        { label: 'Cinética', data: [0], backgroundColor: '#3498db', borderWidth: 1 },
-                        { label: 'Potencial', data: [0], backgroundColor: '#27ae60', borderWidth: 1 },
-                        { label: 'Dissipada', data: [0], backgroundColor: '#e74c3c', borderWidth: 1 },
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true, title: { display: true, text: 'Joules (J)' } },
-                        y: { stacked: true, display: false }
-                    },
-                    plugins: {
-                        legend: { position: 'top' },
-                         tooltip: { enabled: false }
-                    }
-                }
-            });
+  <script>
+    // =================== VARIÁVEIS GLOBAIS ===================
+    let g = 9.81; // gravidade global para projéteis
 
-            let state = {
-                angle: Math.PI / 3,
-                angularVelocity: 0,
-                friction: 0.005,
-                mass: 1,
-                initialEnergy: 0,
-            };
-            
-            state.initialEnergy = state.mass * g * armLength * (1 - Math.cos(state.angle));
+    // =================== PROJÉTIL 1D ===================
+    function setupProjectile1D(){
+      const massSlider = document.getElementById('projMass');
+      const velSlider = document.getElementById('projVel');
+      const massValue = document.getElementById('projMassValue');
+      const velValue = document.getElementById('projVelValue');
+      const projectileEl = document.getElementById('projectile1D');
+      const totalEnergyEl = document.getElementById('projTotalEnergy');
+      const maxHeightEl = document.getElementById('projMaxHeight');
+      const ctx = document.getElementById('projectileChart1D').getContext('2d');
 
-            function updateFriction() {
-                state.friction = parseFloat(frictionSlider.value);
-                const frictionLevel = state.friction / 0.05;
-                if (frictionLevel < 0.01) frictionValue.textContent = 'Nenhum';
-                else if (frictionLevel < 0.33) frictionValue.textContent = 'Baixo';
-                else if (frictionLevel < 0.66) frictionValue.textContent = 'Médio';
-                else frictionValue.textContent = 'Alto';
-            }
+      let chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Energia'],
+          datasets: [
+            { label: 'Cinética', data: [0], backgroundColor: '#38bdf8' },
+            { label: 'Potencial', data: [0], backgroundColor: '#4ade80' }
+          ]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          scales: { x: { stacked: true, ticks: { color: '#e2e8f0' }, title: { display: true, text: 'Joules (J)', color: '#e2e8f0' } }, y: { stacked: true, display: false } },
+          plugins: { legend: { labels: { color: '#e2e8f0' } }, tooltip: { enabled: true, backgroundColor: '#2f3b4c', titleColor: '#e2e8f0', bodyColor: '#e2e8f0' } },
+          animation: false
+        }
+      });
 
-            function animatePendulum() {
-                const angularAcceleration = -(g / armLength) * Math.sin(state.angle) - state.friction * state.angularVelocity;
-                state.angularVelocity += angularAcceleration * 0.016;
-                state.angle += state.angularVelocity * 0.016;
+      let animId = null; let lastTs = null;
+      let animationDuration = 2; // segundos para a animação completa
+      let state = { mass: 0.5, v0: 50, t: 0, totalEnergy: 0, maxHeight: 0 };
 
-                arm.style.transform = `rotate(${state.angle}rad)`;
-                
-                const bobX = arm.parentElement.clientWidth / 2 + armLength * Math.sin(state.angle) - bobSize / 2;
-                const bobY = armLength * Math.cos(state.angle) - bobSize / 2;
-                bob.style.left = `${bobX}px`;
-                bob.style.top = `${bobY}px`;
-                
-                const height = armLength * (1 - Math.cos(state.angle));
-                const velocity = state.angularVelocity * armLength;
-                const e_p = state.mass * g * height;
-                const e_c = 0.5 * state.mass * velocity * velocity;
-                const currentEnergy = e_p + e_c;
-                const dissipatedEnergy = state.initialEnergy - currentEnergy;
-                
-                chart.data.datasets[0].data[0] = e_c;
-                chart.data.datasets[1].data[0] = e_p;
-                chart.data.datasets[2].data[0] = dissipatedEnergy > 0 ? dissipatedEnergy : 0;
-                chart.options.scales.x.max = state.initialEnergy * 1.1;
-                chart.update('none');
-                
-                currentEnergyEl.textContent = currentEnergy.toFixed(2);
-                
-                requestAnimationFrame(animatePendulum);
-            }
-            
-            frictionSlider.addEventListener('input', updateFriction);
-            updateFriction();
-            animatePendulum();
-        };
+      function recalcAndStart(){
+        if (animId) cancelAnimationFrame(animId);
+        state.mass = parseFloat(massSlider.value);
+        state.v0 = parseFloat(velSlider.value);
+        state.t = 0;
+        state.totalEnergy = 0.5 * state.mass * state.v0 * state.v0;
+        state.maxHeight = (state.v0 * state.v0) / (2 * g);
+        massValue.textContent = state.mass.toFixed(2) + ' kg';
+        velValue.textContent = state.v0.toFixed(0) + ' m/s';
+        totalEnergyEl.textContent = state.totalEnergy.toFixed(2);
+        maxHeightEl.textContent = state.maxHeight.toFixed(2);
+        lastTs = null;
+        animate();
+      }
 
-        const setupChallenges = () => {
-            document.getElementById('calcVik').addEventListener('click', () => {
-                const h = 20;
-                const v = Math.sqrt(2 * g * h);
-                document.getElementById('resVik').textContent = `v = ${v.toFixed(2)} m/s`;
-            });
-            document.getElementById('calcPed').addEventListener('click', () => {
-                const h = 3;
-                const v = Math.sqrt(2 * g * h);
-                document.getElementById('resPed').textContent = `v = ${v.toFixed(2)} m/s`;
-            });
-            document.getElementById('calcLut').addEventListener('click', () => {
-                const m = 100;
-                const v = 5;
-                const e_pe = 0.5 * m * v * v;
-                document.getElementById('resLut').textContent = `E_pe = ${e_pe.toFixed(2)} J`;
-            });
-            document.getElementById('calcEsc').addEventListener('click', () => {
-                const m = 50, h = 2, w_atrito = 600;
-                const e_p_inicial = m * g * h;
-                const e_c_final = e_p_inicial - w_atrito;
-                if (e_c_final > 0) {
-                    const v_final = Math.sqrt(2 * e_c_final / m);
-                    document.getElementById('resEsc').textContent = `v = ${v_final.toFixed(2)} m/s`;
-                } else {
-                    document.getElementById('resEsc').textContent = 'Não chega ao final';
-                }
-            });
-        };
+      function animate(ts){
+        if (lastTs === null) lastTs = ts || performance.now();
+        const dt = ((ts || performance.now()) - lastTs) / 1000;
+        lastTs = (ts || performance.now());
 
-        document.addEventListener('DOMContentLoaded', () => {
-            setupProjectile();
-            setupPendulum();
-            setupChallenges();
-        });
-    </script>
-</body>
-</html>
+        const totalFlightTime = 2 * state.v0 / g;
+        // Fração do tempo total para garantir animação sempre com a mesma duração
+        state.t += dt * (totalFlightTime / animationDuration);
+
+        const y = Math.max(0, state.v0 * state.t - 0.5 * g * state.t * state.t);
+        const v = state.v0 - g * state.t;
+
+        const container = projectileEl.parentElement; const H = container.clientHeight; const hDot = projectileEl.clientHeight;
+        const pixelY = (state.maxHeight > 0 ? y / state.maxHeight : 0) * (H - hDot);
+        projectileEl.style.bottom = `${Math.max(0, pixelY)}px`;
+
+        const e_c = Math.max(0, 0.5 * state.mass * v * v);
+        const e_p = Math.max(0, state.totalEnergy - e_c);
+        chart.data.datasets[0].data[0] = e_c;
+        chart.data.datasets[1].data[0] = e_p;
+        chart.options.scales.x.max = state.totalEnergy * 1.1;
+        chart.update('none');
+
+        if (state.t > totalFlightTime) { state.t = 0; lastTs = null; }
+        animId = requestAnimationFrame(animate);
+      }
+
+      massSlider.addEventListener('input', recalcAndStart);
+      velSlider.addEventListener('input', recalcAndStart);
+      recalcAndStart();
+
+      // Retorne um "restart" para ser chamado quando g mudar
+      return { restart: recalcAndStart };
+    }
+
+    // =================== PROJÉTIL 2D ===================
+    function setupProjectile2D(){
+      const massSlider = document.getElementById('proj2Mass');
+      const velSlider = document.getElementById('proj2Vel');
+      const angleSlider = document.getElementById('proj2Angle');
+      const massValue = document.getElementById('proj2MassValue');
+      const velValue = document.getElementById('proj2VelValue');
+      const angleValue = document.getElementById('proj2AngleValue');
+
+      const dot = document.getElementById('projectile2D');
+      const container = document.getElementById('proj2Container');
+      const canvas = document.getElementById('trajCanvas');
+      const ctxTrace = canvas.getContext('2d');
+
+      const EtotalEl = document.getElementById('proj2TotalEnergy');
+      const HmaxEl = document.getElementById('proj2MaxHeight');
+      const RangeEl = document.getElementById('proj2Range');
+
+      const chartCtx = document.getElementById('projectileChart2D').getContext('2d');
+      let chart = new Chart(chartCtx, {
+        type: 'bar',
+        data: { labels: ['Energia'], datasets: [
+          { label: 'Cinética', data: [0], backgroundColor: '#38bdf8' },
+          { label: 'Potencial', data: [0], backgroundColor: '#4ade80' },
+          { label: 'Total', data: [0], backgroundColor: '#facc15' },
+        ]},
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          scales:{ x:{ stacked:true, ticks:{ color:'#e2e8f0' }, title:{ display:true, text:'Joules (J)', color:'#e2e8f0' }}, y:{ stacked:true, display:false } },
+          plugins:{ legend:{ labels:{ color:'#e2e8f0' } } }, animation:false }
+      });
+
+      let animId = null; let lastTs = null;
+      let state = { m:1, v0:50, angle:45*Math.PI/180, vx:0, vy:0, t:0, H:0, R:0, Et0:0 };
+
+      function fitCanvas(){ canvas.width = container.clientWidth; canvas.height = container.clientHeight; }
+      window.addEventListener('resize', fitCanvas);
+
+      function recalc(){
+        state.m = parseFloat(massSlider.value);
+        state.v0 = parseFloat(velSlider.value);
+        state.angle = parseFloat(angleSlider.value) * Math.PI/180;
+        state.vx = state.v0 * Math.cos(state.angle);
+        state.vy = state.v0 * Math.sin(state.angle);
+        state.H = (state.vy*state.vy)/(2*g);
+        state.R = (state.v0*state.v0*Math.sin(2*state.angle))/g;
+        state.Et0 = 0.5 * state.m * state.v0 * state.v0;
+        state.t = 0;
+
+        massValue.textContent = state.m.toFixed(1)+' kg';
+        velValue.textContent = state.v0.toFixed(0)+' m/s';
+        angleValue.textContent = (state.angle*180/Math.PI).toFixed(0)+'°';
+        EtotalEl.textContent = state.Et0.toFixed(2);
+        HmaxEl.textContent = state.H.toFixed(2);
+        RangeEl.textContent = state.R.toFixed(2);
+
+        // reset desenho
+        fitCanvas();
+        ctxTrace.clearRect(0,0,canvas.width,canvas.height);
+        ctxTrace.lineWidth = 2; ctxTrace.globalAlpha = 0.9;
+        ctxTrace.beginPath();
+        lastTs = null;
+        if (animId) cancelAnimationFrame(animId);
+        animate();
+      }
+
+      function animate(ts){
+        if (lastTs === null) lastTs = ts || performance.now();
+        const dt = ((ts || performance.now()) - lastTs) / 1000; // s
+        lastTs = (ts || performance.now());
+        state.t += dt;
+
+        // posição
+        let x = state.vx * state.t;
+        let y = state.vy * state.t - 0.5 * g * state.t * state.t;
+        if (y < 0) y = 0;
+
+        // escalas para caber na área
+        const W = container.clientWidth; const H = container.clientHeight; const rDot = dot.clientWidth;
+        const R = Math.max(0.5, state.R); const HH = Math.max(0.5, state.H);
+        const px = Math.min(W - rDot, (x / R) * (W - rDot));
+        const py = Math.min(H - rDot, (y / HH) * (H - rDot));
+
+        dot.style.left = `${px}px`; dot.style.bottom = `${py}px`;
+
+        // Traço da trajetória
+        const cx = px + rDot/2; const cy = H - (py + rDot/2); // canvas origem no topo
+        if (state.t === 0) { ctxTrace.moveTo(cx, cy); } else { ctxTrace.lineTo(cx, cy); ctxTrace.strokeStyle = '#22d3ee'; ctxTrace.stroke(); }
+
+        // energias
+        const vy_t = state.vy - g*state.t;
+        const v2 = state.vx*state.vx + vy_t*vy_t;
+        const Ec = 0.5 * state.m * v2;
+        const Ep = state.m * g * y;
+        const Et = Ec + Ep;
+        chart.data.datasets[0].data[0] = Ec;
+        chart.data.datasets[1].data[0] = Ep;
+        chart.data.datasets[2].data[0] = Et;
+        chart.options.scales.x.max = state.Et0 * 1.2;
+        chart.update('none');
+
+        if (y > 0 || state.t === 0) { animId = requestAnimationFrame(animate); }
+      }
+
+      massSlider.addEventListener('input', recalc);
+      velSlider.addEventListener('input', recalc);
+      angleSlider.addEventListener('input', recalc);
+      recalc();
+
+      return { restart: recalc };
+    }
+
+    // =================== PÊNDULO DISSIPATIVO ===================
+    function setupPendulum(){
+      const frictionSlider = document.getElementById('pendulumFriction');
+      const frictionValue = document.getElementById('pendulumFrictionValue');
+      const arm = document.getElementById('pendulum-arm');
+      const currentEnergyEl = document.getElementById('pendulumCurrentEnergy');
+      const resetButton = document.getElementById('resetPendulum');
+      const ctx = document.getElementById('pendulumChart').getContext('2d');
+
+      const armLength = 160; // px (usado apenas para visual)
+      let chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['Energia'], datasets: [
+          { label: 'Cinética', data: [0], backgroundColor: '#38bdf8' },
+          { label: 'Potencial', data: [0], backgroundColor: '#4ade80' },
+          { label: 'Dissipada', data: [0], backgroundColor: '#fca5a5' }
+        ]},
+        options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          scales:{ x:{ stacked:true, ticks:{ color:'#e2e8f0' }, title:{ display:true, text:'Joules (J)', color:'#e2e8f0' } }, y:{ stacked:true, display:false } },
+          plugins:{ legend:{ labels:{ color:'#e2e8f0' } } }, animation:false }
+      });
+
+      let animId; let state = { angle: Math.PI/3, angularVelocity: 0, friction: 0.005, mass: 1, initialEnergy: 0 };
+
+      function updateFriction(){
+        state.friction = parseFloat(frictionSlider.value);
+        const level = state.friction / 0.2;
+        frictionValue.textContent = level < 0.01 ? 'Nenhum' : (level < 0.33 ? 'Baixo' : (level < 0.66 ? 'Médio' : 'Alto'));
+        resetPendulum(); // Reinicia ao alterar o atrito
+      }
+
+      function resetPendulum(){
+        if (animId) cancelAnimationFrame(animId);
+        state.angle = Math.PI/3; state.angularVelocity = 0;
+        const Lm = armLength; const gLoc = 9.81;
+        state.initialEnergy = state.mass * gLoc * Lm * (1 - Math.cos(state.angle));
+        animate();
+      }
+
+      function animate(){
+        animId = requestAnimationFrame(animate);
+        const Lm = armLength; const gLoc = 9.81;
+        const alpha = -(gLoc / Lm) * Math.sin(state.angle) - state.friction * state.angularVelocity;
+        state.angularVelocity += alpha * 0.016; // ~60 FPS
+        state.angle += state.angularVelocity * 0.016;
+        arm.style.transform = `rotate(${(state.angle * 180 / Math.PI)}deg)`; // Corrigido para graus
+
+        const height = Lm * (1 - Math.cos(state.angle));
+        const velocity = state.angularVelocity * Lm;
+        const e_p = state.mass * gLoc * height;
+        const e_c = 0.5 * state.mass * velocity * velocity;
+        const currentEnergy = e_p + e_c;
+        const dissipatedEnergy = Math.max(0, state.initialEnergy - currentEnergy);
+
+        chart.data.datasets[0].data[0] = Math.max(0, e_c);
+        chart.data.datasets[1].data[0] = Math.max(0, e_p);
+        chart.data.datasets[2].data[0] = Math.max(0, dissipatedEnergy);
+        chart.options.scales.x.max = state.initialEnergy * 1.1;
+        chart.update('none');
+        currentEnergyEl.textContent = currentEnergy.toFixed(2);
+      }
+
+      frictionSlider.addEventListener('input', updateFriction);
+      resetButton.addEventListener('click', resetPendulum);
+      updateFriction();
+    }
+
+    // =================== DESAFIOS ORIGINAIS ===================
+    function setupChallengesOriginal(){
+      document.getElementById('calcVik').addEventListener('click', () => {
+        const h = 20; const v = Math.sqrt(2 * g * h); // usa g global
+        document.getElementById('resVik').textContent = `v = ${v.toFixed(2)} m/s`;
+      });
+      document.getElementById('calcPed').addEventListener('click', () => {
+        const h = 3; const v = Math.sqrt(2 * g * h);
+        document.getElementById('resPed').textContent = `v = ${v.toFixed(2)} m/s`;
+      });
+      document.getElementById('calcLut').addEventListener('click', () => {
+        const m = 100; const v = 5; const e_pe = 0.5 * m * v * v;
+        document.getElementById('resLut').textContent = `E_pe = ${e_pe.toFixed(2)} J`;
+      });
+      document.getElementById('calcEsc').addEventListener('click', () => {
+        const m = 50, h = 2, w_atrito = 600; const e_p_inicial = m * g * h; const e_c_final = e_p_inicial - w_atrito;
+        if (e_c_final > 0) {
+          const v_final = Math.sqrt(2 * e_c_final / m);
+          document.getElementById('resEsc').textContent = `v = ${v_final.toFixed(2)} m/s`;
+        } else { document.getElementById('resEsc').textContent = 'Não chega ao final'; }
+      });
+    }
+
+    // =================== DESAFIOS PLANETÁRIOS ===================
+    function setupPlanetaryChallenges(){
+      document.getElementById('calcTerraLua').addEventListener('click', () => {
+        const v0 = 50, angle = 45 * Math.PI/180; const s2 = Math.sin(2*angle);
+        const rangeTerra = (v0*v0 * s2) / 9.81; const rangeLua = (v0*v0 * s2) / 1.62;
+        document.getElementById('resTerraLua').textContent = `Terra: ${rangeTerra.toFixed(2)} m | Lua: ${rangeLua.toFixed(2)} m`;
+      });
+      document.getElementById('calcMarteJupiter').addEventListener('click', () => {
+        const v0 = 30, angle = 60 * Math.PI/180; const vy = v0 * Math.sin(angle);
+        const hMarte = (vy*vy)/(2*3.71); const hJup = (vy*vy)/(2*24.79);
+        document.getElementById('resMarteJupiter').textContent = `Marte: ${hMarte.toFixed(2)} m | Júpiter: ${hJup.toFixed(2)} m`;
+      });
+      document.getElementById('calcCustomG').addEventListener('click', () => {
+        const gVal = Math.max(0.01, parseFloat(document.getElementById('customG').value));
+        const v0 = 40, angle = 30 * Math.PI/180; const vx = v0*Math.cos(angle); const vy = v0*Math.sin(angle);
+        const tFlight = 2*vy/gVal; const range = vx * tFlight; const hMax = (vy*vy)/(2*gVal);
+        document.getElementById('resCustomG').textContent = `Alcance: ${range.toFixed(2)} m | Altura Máxima: ${hMax.toFixed(2)} m`;
+      });
+    }
+
+    // =================== GRAVIDADE GLOBAL (UI) ===================
+    function setupGravityUI(projectile1D, projectile2D){
+      const gSlider = document.getElementById('gSlider');
+      const gValue = document.getElementById('gValue');
+      function setG(val){ g = val; gSlider.value = val; gValue.textContent = `${parseFloat(val).toFixed(2)} m/s²`; projectile1D.restart(); projectile2D.restart(); }
+      gSlider.addEventListener('input', (e)=> setG(parseFloat(e.target.value)) );
+      document.querySelectorAll('.planet-btn').forEach(btn => btn.addEventListener('click', ()=> setG(parseFloat(btn.dataset.g))));
+      setG(parseFloat(gSlider.value));
+    }
+
+    // =================== INIT ===================
+    document
