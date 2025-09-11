@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, { delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ]});"></script>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body);"></script>
+<html lang="pt-BR">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Laboratório de Conservação de Energia</title>
@@ -58,7 +73,6 @@
         <p class="mt-2 text-base md:text-lg text-gray-300">Inspirado na lei de Lavoisier: "Nada se perde, tudo se transforma."</p>
     </div>
 </header>
-
 <main class="container mx-auto px-4 md:px-6 py-8 md:py-12">
     <!-- Conceitos Fundamentais -->
     <section id="conceitos" class="mb-12 md:mb-16">
@@ -68,17 +82,17 @@
             <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
                 <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#38bdf8]"><span class="emoji-animated">⚡</span> Energia Cinética</h3>
                 <p class="text-gray-300">A energia associada ao <strong>movimento</strong>. Quanto maior a massa ou a velocidade de um corpo, maior sua energia cinética. Ela é máxima quando o objeto está em sua velocidade mais alta e zero quando está parado.</p>
-                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_c = $1/2$ mv²</p>
+                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">$E_c = \frac{1}{2}mv^2$</p>
             </div>
             <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
                 <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#4ade80]"><span class="emoji-animated">⛰️</span> Energia Potencial</h3>
                 <p class="text-gray-300">A energia armazenada devido à <strong>posição</strong> ou altura de um corpo. Quanto mais alto, maior sua capacidade de realizar trabalho. Ela é máxima na altura máxima e zero na altura de referência.</p>
-                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_p = mgh</p>
+                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">$E_p = mgh$</p>
             </div>
             <div class="bg-[#2f3b4c] p-4 md:p-6 rounded-xl shadow-lg transition-transform hover:scale-105 md:col-span-2 lg:col-span-1">
                 <h3 class="text-xl md:text-2xl font-bold mb-3 text-[#fca5a5]"><span class="emoji-animated">⚙️</span> Energia Mecânica</h3>
                 <p class="text-gray-300">É a <strong>soma</strong> da energia cinética e da energia potencial. Em sistemas ideais, onde não há atrito ou outras perdas, essa energia total se conserva e permanece constante durante todo o movimento.</p>
-                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">E_m = E_c + E_p</p>
+                <p class="mt-4 text-center font-mono bg-[#1f2937] text-[#e2e8f0] p-2 rounded-md">$E_m = E_c + E_p$</p>
             </div>
         </div>
     </section>
@@ -668,6 +682,13 @@
         setupPlanetaryChallenges();
         setupGravityUI(p1, p2);
     });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise();
+  }
+});
 </script>
 </body>
 </html>
