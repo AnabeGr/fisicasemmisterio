@@ -150,22 +150,33 @@
                     <div id="projectile2D"></div>
                 </div>
                 <div class="mt-4 grid grid-cols-3 gap-4">
-                    <div>
-                        <label for="proj2Mass" class="block text-sm font-medium text-gray-300">Massa (kg)</label>
-                        <input type="range" id="proj2Mass" min="0.1" max="5" step="0.1" value="1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Massa do projétil 2D">
-                        <span id="proj2MassValue" class="text-center block font-mono text-sm md:text-base">1.0 kg</span>
-                    </div>
-                    <div>
-                        <label for="proj2Vel" class="block text-sm font-medium text-gray-300">Velocidade Inicial (m/s)</label>
-                        <input type="range" id="proj2Vel" min="5" max="120" step="1" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Velocidade inicial do projétil 2D">
-                        <span id="proj2VelValue" class="text-center block font-mono text-sm md:text-base">50 m/s</span>
-                    </div>
-                    <div>
-                        <label for="proj2Angle" class="block text-sm font-medium text-gray-300">Ângulo de lançamento (°)</label>
-                        <input type="range" id="proj2Angle" min="5" max="85" step="1" value="45" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Ângulo de lançamento do projétil 2D">
-                        <span id="proj2AngleValue" class="text-center block font-mono text-sm md:text-base">45°</span>
-                    </div>
-                </div>
+    <div>
+        <label for="proj2Mass" class="block text-sm font-medium text-gray-300">Massa (kg)</label>
+        <input type="range" id="proj2Mass" min="0.1" max="5" step="0.1" value="1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Massa do projétil 2D">
+        <span id="proj2MassValue" class="text-center block font-mono text-sm md:text-base">1.0 kg</span>
+    </div>
+    <div>
+        <label for="proj2Vel" class="block text-sm font-medium text-gray-300">Velocidade Inicial (m/s)</label>
+        <input type="range" id="proj2Vel" min="5" max="120" step="1" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Velocidade inicial do projétil 2D">
+        <span id="proj2VelValue" class="text-center block font-mono text-sm md:text-base">50 m/s</span>
+    </div>
+    <div>
+        <label for="proj2Angle" class="block text-sm font-medium text-gray-300">Ângulo de lançamento (°)</label>
+        <input type="range" id="proj2Angle" min="5" max="85" step="1" value="45" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Ângulo de lançamento do projétil 2D">
+        <span id="proj2AngleValue" class="text-center block font-mono text-sm md:text-base">45°</span>
+    </div>
+</div>
+<!-- Botão de estrela para simulação PhET -->
+<div class="flex justify-center mt-4">
+    <a href="https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_all.html?locale=pt_BR"
+       target="_blank"
+       rel="noopener"
+       class="inline-flex items-center px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-full shadow transition"
+       aria-label="Abrir simulação PhET de lançamento de projéteis">
+        <span class="text-2xl mr-2" aria-hidden="true">⭐</span>
+        Simulação PhET
+    </a>
+</div>
             </div>
             <div>
                 <div class="chart-container">
